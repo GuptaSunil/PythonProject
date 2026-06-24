@@ -18,4 +18,40 @@ postgres:
   user: "postgres"
   password: "admin"
   port: 5432
-  #target_table: "config.PINCODE"
+
+
+tables:
+  - source_query: "SELECT [officename]
+      ,[pincode]
+      ,[officeType]
+      ,[Deliverystatus]
+      ,[divisionname]
+      ,[regionname]
+      ,[circlename]
+      ,[Taluk]
+      ,[Districtname]
+      ,[statename]
+      ,[STATE_CD] FROM [PINCODE]"
+    target_table: "config.PINCODE"
+    topic: "PINCODE"
+    transform: "transform_Pincode"
+
+  - source_query: "SELECT Seq_no, State_Name, STATE_Code, GST_STATE_Code FROM STATE_Code"
+    target_table: "config.STATE_Code"
+    topic: "STATE_CODE"
+    transform: "transform_STATE_Code"
+    
+kafka:
+  brokers: "127.0.0.1:9092"
+  topics:
+    raw_data: "raw_mssql_data"
+    transformed_data: "transformed_data"
+  consumer_groups:
+    transform_group: "etl-transform"
+    load_group: "etl-load"
+  producer:
+    linger_ms: 5
+    batch_size: 32768
+    compression_type: "snappy"
+
+

@@ -1,3 +1,13 @@
-pyodbc
-psycopg2-binary
-PyYAML
+# Core ETL dependencies
+pyodbc==5.1.0
+psycopg2-binary==2.9.9
+PyYAML==6.0.2
+
+# Kafka client
+confluent-kafka==2.5.0
+
+# Logging (built-in, no need to install separately)
+# threading (built-in, no need to install separately)
+
+# Optional: if you want to use pandas for transformations
+pandas==2.2.2
