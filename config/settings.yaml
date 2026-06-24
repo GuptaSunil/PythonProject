@@ -1,0 +1,21 @@
+mssql:
+  conn_str: "DRIVER={ODBC Driver 17 for SQL Server};SERVER=DESKTOP-VI6B10H ;DATABASE=RANDOM;UID=admin;PWD=admin"
+  query: "SELECT [officename]
+      ,[pincode]
+      ,[officeType]
+      ,[Deliverystatus]
+      ,[divisionname]
+      ,[regionname]
+      ,[circlename]
+      ,[Taluk]
+      ,[Districtname]
+      ,[statename]
+      ,[STATE_CD] FROM [PINCODE]"
+
+postgres:
+  host: "localhost"
+  dbname: "postgres"
+  user: "postgres"
+  password: "admin"
+  port: 5432
+  #target_table: "config.PINCODE"

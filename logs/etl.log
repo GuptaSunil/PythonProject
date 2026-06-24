@@ -1,0 +1,4 @@
+2026-06-23 17:32:46,309 - INFO - Starting ETL process...
+2026-06-23 17:32:51,496 - INFO - Extracted 154823 rows from MSSQL
+2026-06-23 17:32:51,784 - INFO - Transformed 154823 rows
+2026-06-23 17:33:02,221 - INFO - Data successfully loaded into PostgreSQL
