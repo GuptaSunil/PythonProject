@@ -35,12 +35,21 @@ tables:
     target_table: "config.PINCODE"
     topic: "PINCODE"
     transform: "transform_Pincode"
+    skip: true
 
   - source_query: "SELECT Seq_no, State_Name, STATE_Code, GST_STATE_Code FROM STATE_Code"
     target_table: "config.STATE_Code"
     topic: "STATE_CODE"
     transform: "transform_STATE_Code"
-    
+    skip: true
+
+  - source_query: "SELECT UserID, UserName, LoginTime, LogoutTime, IPAddress, Device, Location, Status 
+                    FROM LoginHistory"
+    target_table: "config.LoginHistory"
+    topic: "LOGIN_HISTORY"
+    transform: "transform_LoginHistory"
+    skip: false
+
 kafka:
   brokers: "127.0.0.1:9092"
   topics:

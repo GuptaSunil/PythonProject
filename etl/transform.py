@@ -83,3 +83,19 @@ def transform_STATE_Code_Kafka(rows):
             "GST_STATE_Code": row["GST_STATE_Code"]
         })
     return transformed
+
+def transform_LoginHistory_Kafka(rows):
+    transformed = []
+    for row in rows:  # row is a dict
+        transformed.append({
+            "UserID": row.get("UserID"),
+            "UserName": (row.get("UserName") or "").upper(),  # uppercase, safe if None
+            "LoginTime": row.get("LoginTime"),
+            "LogoutTime": row.get("LogoutTime"),
+            "IPAddress": row.get("IPAddress"),
+            "Device": row.get("Device") if row.get("Device") else "NA",
+            "Location": row.get("Location") if row.get("Location") else "NA",
+            "Status": row.get("Status") if row.get("Status") else "NA"
+        })
+    return transformed
+

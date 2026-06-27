@@ -7,7 +7,7 @@ import threading
 import yaml
 from confluent_kafka.admin import AdminClient
 from etl.extract import extract_from_mssql, extract_from_mssql_Cols
-from etl.transform import transform_Pincode, transform_Pincode_Kafka, transform_STATE_Code, transform_STATE_Code_Kafka, transform_data
+from etl.transform import transform_LoginHistory_Kafka, transform_Pincode, transform_Pincode_Kafka, transform_STATE_Code, transform_STATE_Code_Kafka, transform_data
 from etl.load import load_to_postgres, load_to_postgres_many, load_to_postgres_many_Kafka
 from confluent_kafka import Consumer, Producer
 import pyodbc
@@ -128,6 +128,7 @@ def etl_worker(mapping):
 TRANSFORM_MAP_Kafka = {
     "transform_Pincode": transform_Pincode_Kafka,
     "transform_STATE_Code": transform_STATE_Code_Kafka,
+    "transform_LoginHistory": transform_LoginHistory_Kafka,
 }
 
 consumer = Consumer({
@@ -152,7 +153,7 @@ def extract_and_publish_worker(mapping):
             topic,
             key=str(row[0]),
             value=json.dumps(row_dict)
-            #,callback=delivery_report
+            ,callback=delivery_report
         )
         producer.poll(0)  # prevent buffer overflow
     producer.flush()
@@ -174,10 +175,14 @@ def delivery_report(err, msg):
 
 
 
-#Multi Threading Using Kafka Topices 
+#Multi Threading Using Kafka Topices  
 def run_kafka_etl_multitable_parallel():
     threads = []
     for mapping in config["tables"]:
+
+        if mapping['skip']:
+            logging.info(f"Skipping ETL for {mapping['topic']} as per configuration.")
+            continue
         # Each mapping gets its own end-to-end pipeline
         t = threading.Thread(target=etl_pipeline_worker, args=(mapping,))
         threads.append(t)
