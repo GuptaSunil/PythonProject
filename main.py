@@ -153,7 +153,7 @@ def extract_and_publish_worker(mapping):
             topic,
             key=str(row[0]),
             value=json.dumps(row_dict)
-            ,callback=delivery_report
+            #,callback=delivery_report
         )
         producer.poll(0)  # prevent buffer overflow
     producer.flush()
@@ -173,10 +173,17 @@ def delivery_report(err, msg):
     else:
         logging.info(f"Message delivered to {msg.topic()} [{msg.partition()}]")
 
+def reset_producer(producer):
+    # Clear any pending messages
+    producer.flush(0)
+    logging.info("Producer queue cleared before new batch.")
 
 
 #Multi Threading Using Kafka Topices  
 def run_kafka_etl_multitable_parallel():
+    # For Temporary Flush
+    reset_producer(producer)
+    
     threads = []
     for mapping in config["tables"]:
 
@@ -211,7 +218,7 @@ def etl_pipeline_worker(mapping):
     #    bootstrap_servers=config["kafka"]["brokers"]
     #)
     
-    logging.info(f"Deleted topics for {mapping['topic']}")
+    #logging.info(f"Deleted topics for {mapping['topic']}")
 
 def transform_worker_once(mapping):
     consumer = Consumer({
@@ -262,12 +269,16 @@ def load_worker_once(mapping, batch_size=10000):
     transformed_topic = f"transformed_data_{mapping['topic']}"
     consumer.subscribe([transformed_topic])
 
+    target_mapping = mapping['column_mapping']
+    print(f"Target Mapping: {target_mapping}")
+
     buffer = []
     while True:
         msg = consumer.poll(1.0)
         if msg is None:
             if buffer:
-                load_to_postgres_many_Kafka(buffer, list(buffer[0].keys()), config["postgres"], mapping["target_table"])
+                load_to_postgres_many_Kafka(buffer, list(buffer[0].keys()), config["postgres"], 
+                                            mapping["target_table"],target_mapping)
                 logging.info(f"Loaded final {len(buffer)} rows into {mapping['target_table']}")
             break
         if msg.error():
@@ -278,7 +289,8 @@ def load_worker_once(mapping, batch_size=10000):
         buffer.append(row)
 
         if len(buffer) >= batch_size:
-            load_to_postgres_many_Kafka(buffer, list(buffer[0].keys()), config["postgres"], mapping["target_table"])
+            load_to_postgres_many_Kafka(buffer, list(buffer[0].keys()), config["postgres"], 
+                                        mapping["target_table"],target_mapping)
             logging.info(f"Loaded {len(buffer)} rows into {mapping['target_table']}")
             buffer.clear()
 

@@ -21,33 +21,50 @@ postgres:
 
 
 tables:
-  - source_query: "SELECT [officename]
-      ,[pincode]
-      ,[officeType]
-      ,[Deliverystatus]
-      ,[divisionname]
-      ,[regionname]
-      ,[circlename]
-      ,[Taluk]
-      ,[Districtname]
-      ,[statename]
-      ,[STATE_CD] FROM [PINCODE]"
+  - source_query: "SELECT [officename],[pincode],[officeType],[Deliverystatus],[divisionname]
+                  ,[regionname],[circlename],[Taluk],[Districtname],[statename],[STATE_CD] FROM [PINCODE]"
     target_table: "config.PINCODE"
     topic: "PINCODE"
     transform: "transform_Pincode"
-    skip: true
+    column_mapping:
+      officename: officename
+      pincode: pincode
+      officeType: officetype
+      Deliverystatus: deliverystatus
+      divisionname: divisionname
+      regionname: regionname
+      circlename: circlename
+      Taluk: taluk
+      Districtname: districtname
+      statename: statename
+      STATE_CD: state_cd
+    skip: false
 
   - source_query: "SELECT Seq_no, State_Name, STATE_Code, GST_STATE_Code FROM STATE_Code"
     target_table: "config.STATE_Code"
     topic: "STATE_CODE"
     transform: "transform_STATE_Code"
-    skip: true
+    column_mapping:
+      Seq_no: seq_no
+      State_Name: state_name
+      STATE_Code: state_code
+      GST_STATE_Code: gst_state_code
+    skip: false
 
   - source_query: "SELECT UserID, UserName, LoginTime, LogoutTime, IPAddress, Device, Location, Status 
                     FROM LoginHistory"
     target_table: "config.LoginHistory"
     topic: "LOGIN_HISTORY"
     transform: "transform_LoginHistory"
+    column_mapping:
+      UserID: userid
+      UserName: username
+      LoginTime: logintime
+      LogoutTime: logouttime
+      IPAddress: ipaddress
+      Device: device
+      Location: location
+      Status: status
     skip: false
 
 kafka:
