@@ -1,22 +1,5 @@
-# Adjust this path to where you extracted Kafka
+﻿# Adjust this path to where you extracted Kafka
 $KafkaHome = "C:\kafka"
-
-# Change directory to Kafka installation
-Set-Location $KafkaHome
-
-# Start Zookeeper in a new PowerShell window
-Write-Host "Starting Zookeeper..."
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "$KafkaHome\bin\windows\zookeeper-server-start.bat $KafkaHome\config\zookeeper.properties" -WindowStyle Normal
-
-# Wait a few seconds for Zookeeper to initialize
-Start-Sleep -Seconds 10
-
-# Start Kafka broker in a new PowerShell window
-Write-Host "Starting Kafka broker..."
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "$KafkaHome\bin\windows\kafka-server-start.bat $KafkaHome\config\server.properties" -WindowStyle Normal
-
-# Wait for Kafka to come up
-Start-Sleep -Seconds 10
 
 # Function to create topic only if it doesn't exist
 function Ensure-Topic {
@@ -40,6 +23,4 @@ Ensure-Topic "transformed_data_STATE_MASTER"
 Ensure-Topic "raw_mssql_data_LOGIN_HISTORY"
 Ensure-Topic "transformed_data_LOGIN_HISTORY"
 
-
-Write-Host "Topic setup complete!"
-Write-Host "Kafka broker is running at 127.0.0.1:9092"
+Write-Host "LoginHistory topics setup complete!"

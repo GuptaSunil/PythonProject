@@ -68,7 +68,7 @@ def test_sql_connection():
         print("Connection failed:", e)
 
 
-def test_postgres_connection():
+def test_postgres_connection():     
     try:
         conn = psycopg2.connect(**config["postgres"])
         cursor = conn.cursor()
@@ -208,7 +208,7 @@ def etl_pipeline_worker(mapping):
     transform_worker_once(mapping)
 
     # 3. Load (with batching)
-    load_worker_once(mapping, batch_size=10000)
+    load_worker_once(mapping, batch_size=20000)
 
     logging.info(f"Completed parallel ETL for {mapping['topic']}")
 

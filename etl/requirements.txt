@@ -1,13 +1,26 @@
 # Core ETL dependencies
-pyodbc==5.1.0
-psycopg2-binary==2.9.9
-PyYAML==6.0.2
+confluent-kafka==2.5.0        # Kafka producer/consumer and admin client
+pyodbc==5.1.0                 # MSSQL extraction via ODBC
+psycopg2-binary==2.9.9        # PostgreSQL adapter for loading
+PyYAML==6.0.2                 # YAML config parsing
+zookeeper==3.4.13             # Python client for ZooKeeper
 
-# Kafka client
-confluent-kafka==2.5.0
+# Transformation & data handling
+pandas==2.2.2                 # Data manipulation and cleaning
+sqlalchemy==2.0.30            # Flexible DB interaction and schema handling
+alembic==1.13.2               # Database migrations
 
-# Logging (built-in, no need to install separately)
-# threading (built-in, no need to install separately)
+# Configuration & environment management
+python-dotenv==1.0.1          # Manage environment variables via .env files
 
-# Optional: if you want to use pandas for transformations
-pandas==2.2.2
+# Extraction from APIs / external sources
+requests==2.32.3              # HTTP requests for API data
+
+# Scheduling & orchestration
+schedule==1.2.1               # Lightweight job scheduling
+APScheduler==3.10.4           # Advanced job scheduling
+
+# Development & testing tools
+pytest==8.2.2                 # Unit testing framework
+black==24.4.2                 # Code formatter
+flake8==7.1.0                 # Linter for code quality
