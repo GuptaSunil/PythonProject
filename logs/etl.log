@@ -1,0 +1,23 @@
+2026-06-28 15:34:59,992 - INFO - Producer queue cleared before new batch.
+2026-06-28 15:34:59,992 - INFO - Skipping ETL for PINCODE as per configuration.
+2026-06-28 15:34:59,993 - INFO - Skipping ETL for STATE_CODE as per configuration.
+2026-06-28 15:34:59,994 - INFO - Starting parallel ETL for LOGIN_HISTORY
+2026-06-28 15:35:22,900 - INFO - Published 300000 rows to raw_mssql_data_LOGIN_HISTORY
+2026-06-28 15:35:23,110 - INFO - Starting transform stage for LOGIN_HISTORY
+2026-06-28 15:35:39,111 - INFO - Completed transform stage for LOGIN_HISTORY
+2026-06-28 15:35:41,796 - INFO - Loaded 20000 rows into config.LoginHistory
+2026-06-28 15:35:43,304 - INFO - Loaded 20000 rows into config.LoginHistory
+2026-06-28 15:35:44,911 - INFO - Loaded 20000 rows into config.LoginHistory
+2026-06-28 15:35:46,813 - INFO - Loaded 20000 rows into config.LoginHistory
+2026-06-28 15:35:48,435 - INFO - Loaded 20000 rows into config.LoginHistory
+2026-06-28 15:35:50,225 - INFO - Loaded 20000 rows into config.LoginHistory
+2026-06-28 15:35:51,824 - INFO - Loaded 20000 rows into config.LoginHistory
+2026-06-28 15:35:53,152 - INFO - Loaded 20000 rows into config.LoginHistory
+2026-06-28 15:35:54,929 - INFO - Loaded 20000 rows into config.LoginHistory
+2026-06-28 15:35:56,592 - INFO - Loaded 20000 rows into config.LoginHistory
+2026-06-28 15:35:57,990 - INFO - Loaded 20000 rows into config.LoginHistory
+2026-06-28 15:35:59,909 - INFO - Loaded 20000 rows into config.LoginHistory
+2026-06-28 15:36:01,994 - INFO - Loaded 20000 rows into config.LoginHistory
+2026-06-28 15:36:03,919 - INFO - Loaded 20000 rows into config.LoginHistory
+2026-06-28 15:36:05,691 - INFO - Loaded 20000 rows into config.LoginHistory
+2026-06-28 15:36:06,740 - INFO - Completed parallel ETL for LOGIN_HISTORY

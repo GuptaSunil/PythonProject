@@ -65,3 +65,37 @@ def load_to_postgres_many_Kafka(rows, src_col_names, postgres_config, target_tab
     conn.commit()
     cursor.close()
     conn.close()
+
+
+def load_to_postgres_many_Kafka_Upset(rows, src_col_names, postgres_config, target_table, mapping):
+    conn = psycopg2.connect(**postgres_config)
+    cursor = conn.cursor()
+
+    # Target column names from mapping
+    col_names = list(mapping.values())
+    #src_cols = list(mapping.keys())
+    cols = ", ".join(col_names)
+    placeholders = ", ".join(["%s"] * len(col_names))
+
+    # Primary key must be defined in mapping
+    pk = mapping.get("primary_key")
+    if not pk:
+        raise ValueError(f"No primary_key defined for {target_table}")
+    target_pk = mapping[pk]
+
+    # Build ON CONFLICT clause (update all non-PK columns)
+    update_clause = ", ".join([f"{col}=EXCLUDED.{col}" for col in col_names if col != target_pk])
+
+    insert_sql = f"""
+        INSERT INTO {target_table} ({cols})
+        VALUES ({placeholders})
+        ON CONFLICT ({target_pk}) DO UPDATE SET {update_clause};
+    """
+
+    # Convert dicts to tuples using source keys
+    values = [tuple(row[src] for src in src_col_names) for row in rows]
+
+    cursor.executemany(insert_sql, values)
+    conn.commit()
+    cursor.close()
+    conn.close()

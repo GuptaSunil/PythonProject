@@ -8,7 +8,7 @@ import yaml
 from confluent_kafka.admin import AdminClient
 from etl.extract import extract_from_mssql, extract_from_mssql_Cols
 from etl.transform import transform_LoginHistory_Kafka, transform_Pincode, transform_Pincode_Kafka, transform_STATE_Code, transform_STATE_Code_Kafka, transform_data
-from etl.load import load_to_postgres, load_to_postgres_many, load_to_postgres_many_Kafka
+from etl.load import load_to_postgres, load_to_postgres_many, load_to_postgres_many_Kafka, load_to_postgres_many_Kafka_Upset
 from confluent_kafka import Consumer, Producer
 import pyodbc
 import psycopg2
@@ -201,14 +201,22 @@ def run_kafka_etl_multitable_parallel():
 def etl_pipeline_worker(mapping):
     logging.info(f"Starting parallel ETL for {mapping['topic']}")
 
+    mode = mapping.get("mode", "poll")  # default to normal polling
+
     # 1. Extract & Publish
-    extract_and_publish_worker(mapping)
+    if mode == "poll":
+        extract_and_publish_worker(mapping)
 
     # 2. Transform (batch mode)
     transform_worker_once(mapping)
 
     # 3. Load (with batching)
-    load_worker_once(mapping, batch_size=20000)
+     # 3. Load (with batching)
+    if mode == "poll":
+        load_worker_once(mapping, batch_size=20000)
+    elif mode == "cdc":
+        cdc_worker(mapping, batch_size=20000)
+    
 
     logging.info(f"Completed parallel ETL for {mapping['topic']}")
 
@@ -314,6 +322,92 @@ def safe_delete_topics(prefixes, bootstrap_servers="localhost:9092"):
                 logging.error(f"Failed to delete topic {topic}: {e}")
     except Exception as e:
         logging.error(f"Broker not available, skipping topic deletion: {e}")
+
+
+
+
+#CDC Mapping
+
+def cdc_worker(mapping, batch_size=10000):
+    """
+    CDC worker for a single table mapping.
+    Consumes Debezium CDC events from Kafka and applies changes into Postgres.
+    """
+    raw_topic = f"raw_mssql_data_{mapping['topic']}"
+    consumer = Consumer({
+        'bootstrap.servers': config["kafka"]["brokers"],
+        'group.id': f"cdc-transform-{mapping['topic']}",
+        'auto.offset.reset': 'earliest'
+    })
+    consumer.subscribe([raw_topic])
+
+    logging.info(f"CDC worker started for {mapping['topic']}")
+
+    buffer = []
+    while True:
+        msg = consumer.poll(1.0)
+        if msg is None:
+            # flush remaining buffer
+            if buffer:
+                load_to_postgres_many_Kafka(
+                    buffer,
+                    list(buffer[0].keys()),
+                    config["postgres"],
+                    mapping["target_table"],
+                    mapping["column_mapping"]
+                )
+                logging.info(f"CDC loaded final {len(buffer)} rows into {mapping['target_table']}")
+            break
+        if msg.error():
+            logging.error(msg.error())
+            continue
+
+        event = json.loads(msg.value().decode("utf-8"))
+        op = event.get("op")
+
+        if op in ("c", "u"):  # insert or update
+            row = event["after"]
+            buffer.append(row)
+        elif op == "d":       # delete
+            row = event["before"]
+            handle_delete(row, mapping)
+
+        if len(buffer) >= batch_size:
+            load_to_postgres_many_Kafka(
+                buffer,
+                list(buffer[0].keys()),
+                config["postgres"],
+                mapping["target_table"],
+                mapping["column_mapping"]
+            )
+            logging.info(f"CDC loaded {len(buffer)} rows into {mapping['target_table']}")
+            buffer.clear()
+
+    consumer.close()
+    logging.info(f"CDC worker finished for {mapping['topic']}")
+
+
+def handle_delete(row, mapping):
+    """
+    Delete handler for CDC events.
+    Requires 'primary_key' defined in mapping.
+    """
+    conn = psycopg2.connect(**config["postgres"])
+    cursor = conn.cursor()
+    pk = mapping["primary_key"]  # must be set in YAML config
+    target_pk = mapping["column_mapping"][pk]
+
+    cursor.execute(
+        f"DELETE FROM {mapping['target_table']} WHERE {target_pk} = %s",
+        (row[pk],)
+    )
+    conn.commit()
+    cursor.close()
+    conn.close()
+    logging.info(f"Deleted row from {mapping['target_table']} with {pk}={row[pk]}")
+
+
+
 
 
 # -------------------------------------------------------------------

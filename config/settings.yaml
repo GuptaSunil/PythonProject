@@ -38,7 +38,8 @@ tables:
       Districtname: districtname
       statename: statename
       STATE_CD: state_cd
-    skip: false
+    skip: true
+    mode: "poll"
 
   - source_query: "SELECT Seq_no, State_Name, STATE_Code, GST_STATE_Code FROM STATE_Code"
     target_table: "config.STATE_Code"
@@ -49,7 +50,8 @@ tables:
       State_Name: state_name
       STATE_Code: state_code
       GST_STATE_Code: gst_state_code
-    skip: false
+    skip: true
+    mode: "poll"
 
   - source_query: "SELECT UserID, UserName, LoginTime, LogoutTime, IPAddress, Device, Location, Status 
                     FROM LoginHistory"
@@ -66,6 +68,7 @@ tables:
       Location: location
       Status: status
     skip: false
+    mode: "poll"
 
 kafka:
   brokers: "127.0.0.1:9092"
@@ -79,5 +82,3 @@ kafka:
     linger_ms: 5
     batch_size: 32768
     compression_type: "snappy"
-
-
