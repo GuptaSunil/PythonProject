@@ -95,7 +95,8 @@ def transform_LoginHistory_Kafka(rows):
             "IPAddress": row.get("IPAddress"),
             "Device": row.get("Device") if row.get("Device") else "NA",
             "Location": row.get("Location") if row.get("Location") else "NA",
-            "Status": row.get("Status") if row.get("Status") else "NA"
+            "Status": row.get("Status") if row.get("Status") else "NA",
+            "LoginId": row.get("LoginId")
         })
     return transformed
 

@@ -39,6 +39,7 @@ tables:
       statename: statename
       STATE_CD: state_cd
     skip: true
+    primary_key: "pincode"
     mode: "poll"
 
   - source_query: "SELECT Seq_no, State_Name, STATE_Code, GST_STATE_Code FROM STATE_Code"
@@ -50,24 +51,27 @@ tables:
       State_Name: state_name
       STATE_Code: state_code
       GST_STATE_Code: gst_state_code
-    skip: true
+    skip: false
+    primary_key: "Seq_no"
     mode: "poll"
 
-  - source_query: "SELECT UserID, UserName, LoginTime, LogoutTime, IPAddress, Device, Location, Status 
-                    FROM LoginHistory"
+  - source_query: "SELECT  UserID, UserName, LoginTime, LogoutTime, IPAddress, Device, 
+                    Location, Status ,LoginId FROM loginhistory"
     target_table: "config.LoginHistory"
     topic: "LOGIN_HISTORY"
     transform: "transform_LoginHistory"
     column_mapping:
       UserID: userid
-      UserName: username
+      UserName: user_name
       LoginTime: logintime
       LogoutTime: logouttime
       IPAddress: ipaddress
       Device: device
       Location: location
       Status: status
+      LoginId: loginid
     skip: false
+    primary_key: "LoginId"
     mode: "poll"
 
 kafka:

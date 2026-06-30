@@ -211,7 +211,6 @@ def etl_pipeline_worker(mapping):
     transform_worker_once(mapping)
 
     # 3. Load (with batching)
-     # 3. Load (with batching)
     if mode == "poll":
         load_worker_once(mapping, batch_size=20000)
     elif mode == "cdc":
@@ -256,12 +255,15 @@ def transform_worker_once(mapping):
         transform_func = TRANSFORM_MAP_Kafka[mapping["transform"]]
         transformed_rows = transform_func([row])
 
+        #print(f"Completed transform stage for {mapping['topic']}: {transformed_rows}")
+
         # Publish each transformed row
         for tr in transformed_rows:
             producer.produce(
                 transformed_topic,
                 value=json.dumps(tr, default=json_serializer)
             )
+            #print(json.dumps(tr, default=json_serializer))
             producer.poll(0)
 
     producer.flush()
@@ -278,15 +280,19 @@ def load_worker_once(mapping, batch_size=10000):
     consumer.subscribe([transformed_topic])
 
     target_mapping = mapping['column_mapping']
-    print(f"Target Mapping: {target_mapping}")
+    #print(f"Target Mapping: {target_mapping}")
 
     buffer = []
     while True:
         msg = consumer.poll(1.0)
         if msg is None:
             if buffer:
-                load_to_postgres_many_Kafka(buffer, list(buffer[0].keys()), config["postgres"], 
-                                            mapping["target_table"],target_mapping)
+                #load_to_postgres_many_Kafka(buffer, list(buffer[0].keys()), config["postgres"], 
+                 #                           mapping["target_table"],target_mapping)
+
+                load_to_postgres_many_Kafka_Upset(buffer, list(buffer[0].keys()), config["postgres"],
+                                                  mapping)
+                
                 logging.info(f"Loaded final {len(buffer)} rows into {mapping['target_table']}")
             break
         if msg.error():
@@ -296,9 +302,14 @@ def load_worker_once(mapping, batch_size=10000):
         row = json.loads(msg.value().decode("utf-8"))
         buffer.append(row)
 
+        #print("Raw Kafka message:",  list(buffer[0].keys()))
+
+
         if len(buffer) >= batch_size:
-            load_to_postgres_many_Kafka(buffer, list(buffer[0].keys()), config["postgres"], 
-                                        mapping["target_table"],target_mapping)
+            #load_to_postgres_many_Kafka(buffer, list(buffer[0].keys()), config["postgres"], 
+             #                           mapping["target_table"],target_mapping)
+            load_to_postgres_many_Kafka_Upset(buffer, list(buffer[0].keys()), config["postgres"],
+                                              mapping)
             logging.info(f"Loaded {len(buffer)} rows into {mapping['target_table']}")
             buffer.clear()
 

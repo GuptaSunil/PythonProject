@@ -67,35 +67,54 @@ def load_to_postgres_many_Kafka(rows, src_col_names, postgres_config, target_tab
     conn.close()
 
 
-def load_to_postgres_many_Kafka_Upset(rows, src_col_names, postgres_config, target_table, mapping):
+def load_to_postgres_many_Kafka_Upset(rows, src_col_names, postgres_config, mapping):
     conn = psycopg2.connect(**postgres_config)
     cursor = conn.cursor()
 
-    # Target column names from mapping
-    col_names = list(mapping.values())
-    #src_cols = list(mapping.keys())
+    #print(src_col_names)
+
+    #print("Mapping received for UPSERT:", mapping)
+    
+    target_table = mapping["target_table"]
+    #print("Target table:", target_table)
+
+    # Target column names from mapping, aligned with source
+    col_names = [mapping["column_mapping"][src] for src in src_col_names]
     cols = ", ".join(col_names)
-    placeholders = ", ".join(["%s"] * len(col_names))
+
+    #print("Target columns:", cols)
 
     # Primary key must be defined in mapping
     pk = mapping.get("primary_key")
     if not pk:
         raise ValueError(f"No primary_key defined for {target_table}")
-    target_pk = mapping[pk]
+    target_pk = mapping["column_mapping"][pk]
+
+    #print("Target primary key:", target_pk)
 
     # Build ON CONFLICT clause (update all non-PK columns)
     update_clause = ", ".join([f"{col}=EXCLUDED.{col}" for col in col_names if col != target_pk])
 
     insert_sql = f"""
         INSERT INTO {target_table} ({cols})
-        VALUES ({placeholders})
+        VALUES ({", ".join(["%s"] * len(col_names))})
         ON CONFLICT ({target_pk}) DO UPDATE SET {update_clause};
     """
+
+    #print("Insert SQL:", insert_sql)
 
     # Convert dicts to tuples using source keys
     values = [tuple(row[src] for src in src_col_names) for row in rows]
 
-    cursor.executemany(insert_sql, values)
-    conn.commit()
-    cursor.close()
-    conn.close()
+    try:
+        cursor.executemany(insert_sql, values)
+        conn.commit()
+        print(f"Upserted {len(rows)} rows into {target_table}")
+    except Exception as e:
+        conn.rollback()
+        print(f"Error upserting rows into {target_table}: {e}")
+        raise
+    finally:
+        cursor.close()
+        conn.close()
+        print(f"Connection closed for {target_table}")
